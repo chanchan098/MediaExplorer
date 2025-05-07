@@ -45,19 +45,20 @@ rules
     var myResourceRoot = [[${myResourceRoot}]];
     console.log("myResourceRoot", myResourceRoot)
 
-    var myLocation = [[${myLocation}]];
-    console.log("myLocation", myLocation)
-
-
 </script>
 <script>
     var currentUrl = new URL(window.location.href)
-    var index = currentUrl.origin + "/"
+    var index = currentUrl.origin
 
-    let path = myLocation.replace(myResourceRoot, "").slice(1) + "/"
+    const params = new URLSearchParams(window.location.search);
+    var resFolder = params.get("path")
+
+    resFolderEncoded = encodeURI(resFolder)
+
     $("#myContainer img").each(function (ele, idx) {
-        $(this).attr('src', index + path + $(this).attr("filename"))
+        let file = $(this).attr("filename")
+        let fileEncoded = encodeURIComponent(file)
+        $(this).attr('src', `${index}${resFolderEncoded}/${fileEncoded}`)
     })
-    console.log(path)
 </script>
 </html>

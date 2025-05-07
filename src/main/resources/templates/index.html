@@ -15,6 +15,21 @@
 </head>
 <body>
 
+<script th:inline="javascript">
+
+    var myResourceRoot = [[${myResourceRoot}]];
+    var rootCountOnBreadcrumb = myResourceRoot.split("/").length
+    console.log("myResourceRoot", myResourceRoot)
+
+    const params = new URLSearchParams(window.location.search);
+    var resFolder = params.get("path")
+    resFolder = (resFolder == null || false) ? "" : resFolder
+    console.log("resFolder", resFolder)
+
+    let viewerRules = /*[[${viewerRules}]]*/ [];
+    console.log("viewerRules", viewerRules)
+</script>
+
 <div class="container">
     <form action="/" method="post" id="myForm" style="display: none">
         <input type="text" id="location" name="location">
@@ -28,17 +43,14 @@
     </form>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <th:block th:each="lo, stat : ${#strings.arraySplit(myLocation, '/')}">
-                <li class="breadcrumb-item"><a href="#" th:index="${stat.index}" th:text="${lo}"></a></li>
-                <!--            <li class="breadcrumb-item"><a href="#">Home</a></li>-->
-                <!--            <li class="breadcrumb-item"><a href="#">Library</a></li>-->
-                <!--            <li class="breadcrumb-item active" aria-current="page">Data</li>-->
-            </th:block>
+
+            <li class="breadcrumb-item hidden"><a href="#"></a></li>
+            <!--<li class="breadcrumb-item active" aria-current="page">Data</li>-->
+
         </ol>
     </nav>
 
     <div th:if="${directoryData != null}" class="flex flex-col">
-
 
         <ul class="list-group files">
 
@@ -46,14 +58,15 @@
 
                 <li class="list-group-item"
                     th:type="${fileInfo.type}"
-                    th:classappend="${fileInfo.type == 'File' ? 'file' : 'directory'}">
+                    th:classappend="${fileInfo.type == 'file' ? 'file' : 'directory'}">
 
                     <th:block th:if="${fileInfo.type == 'directory'}">
                         <i class="bi bi-folder"></i>
                     </th:block>
 
-                    <span class="file no-underline! text-[#0d6efd]" th:type="${fileInfo.type}"
-                          th:text="${fileInfo.filename}"></span>
+
+                    <a class="file no-underline!" th:type="${fileInfo.type}"
+                       th:text="${fileInfo.filename}"></a>
                 </li>
 
             </th:block>
@@ -61,19 +74,72 @@
 
     </div>
 </div>
-<script th:inline="javascript">
 
-    var myResourceRoot = [[${myResourceRoot}]];
-    var rootCountOnBreadcrumb = myResourceRoot.split("/").length
-    console.log("myResourceRoot", myResourceRoot)
-
-    var myLocation = [[${myLocation}]];
-    console.log("myLocation", myLocation)
-
-    let viewerRules = /*[[${viewerRules}]]*/ [];
-    console.log(viewerRules)
-</script>
 <script>
+
+    // breadcrumb processing
+    // (() => {
+    const breadcrumb = `${myResourceRoot}${resFolder}`
+    console.log("breadcrumb", breadcrumb)
+
+    const template = $(".breadcrumb li.breadcrumb-item")
+    $(template).remove()
+    template.removeClass("hidden")
+
+    let nextPath = "";
+
+    const bd = breadcrumb.split("/")
+
+    for (let [i, b] of bd.entries()) {
+            if(b!==""){
+                const newOne = template[0].cloneNode(true)
+                $(newOne).find("a").text(b)
+                if (i < rootCountOnBreadcrumb) {
+
+                    $(newOne).find("a").attr("href", "/")
+
+                } else {
+
+                    let folder = b
+                    folder = encodeURIComponent(folder)
+                    nextPath = nextPath + "/" + folder
+                    $(newOne).find("a").attr("href", `?path=${nextPath}`)
+
+                }
+                $(".breadcrumb").append(newOne)
+            }
+    }
+
+
+    // for (let i in $("li.breadcrumb-item a")) {
+    //     if (i < rootCountOnBreadcrumb) {
+    //
+    //         $("li.breadcrumb-item a").eq(i).attr("src", "/")
+    //
+    //     } else {
+    //         let folder = $("li.breadcrumb-item a").eq(i).text()
+    //         folder = encodeURIComponent(folder)
+    //         nextPath = nextPath + "/" + folder
+    //         $("li.breadcrumb-item a").eq(i).attr("href", nextPath)
+    //     }
+    // }
+    // })();
+
+    // files processing
+    (() => {
+        $(".files li.list-group-item a").each(function (e, idx) {
+            let type = $(this).attr("type")
+            let file = $(this).text()
+            let fileEncoded = encodeURIComponent(file)
+            let resFolderEncoded = encodeURI(resFolder)
+            if (type === "directory") {
+                $(this).attr('href', `?path=${resFolderEncoded}/${fileEncoded}`)
+            } else if (type === "file") {
+                $(this).attr('href', `${resFolderEncoded}/${fileEncoded}`)
+            }
+        })
+    })();
+
     /*
     from resource foot
     ends with comparing
@@ -81,76 +147,67 @@
     no / at the end.
      */
 
-    $("li.breadcrumb-item a").click(function (e) {
-        let directory = $(this).text()
-        let type = "directory"
-        let index = parseInt($(this).attr("index"))
-        if (index + 1 > rootCountOnBreadcrumb) {
-            console.log(index, rootCountOnBreadcrumb, directory)
+    // $("li.breadcrumb-item a").click(function (e) {
+    //     let directory = $(this).text()
+    //     let type = "directory"
+    //     let index = parseInt($(this).attr("index"))
+    //     if (index + 1 > rootCountOnBreadcrumb) {
+    //         console.log(index, rootCountOnBreadcrumb, directory)
+    //
+    //         let breadcrumb = $("li.breadcrumb-item a")
+    //         let count = 0;
+    //         let fullPathToCur = "";
+    //         while (count <= index) {
+    //             let t = $(breadcrumb[count]).text()
+    //             fullPathToCur += t + "/";
+    //             count++;
+    //         }
+    //         fullPathToCur = fullPathToCur.slice(0, -1)
+    //         let filename = "/"
+    //
+    //
+    //         let form = $("#myForm")[0]
+    //         $("#location").attr("value", fullPathToCur)
+    //         $("#filename").attr("value", filename)
+    //         $("#type").attr("value", type)
+    //         form.submit()
+    //
+    //     } else {
+    //         window.location = "/"
+    //     }
+    //
+    // })
 
-            let breadcrumb = $("li.breadcrumb-item a")
-            let count = 0;
-            let fullPathToCur = "";
-            while (count <= index) {
-                let t = $(breadcrumb[count]).text()
-                fullPathToCur += t + "/";
-                count++;
-            }
-            fullPathToCur = fullPathToCur.slice(0, -1)
-            let filename = "/"
-
-
-            let form = $("#myForm")[0]
-            $("#location").attr("value", fullPathToCur)
-            $("#filename").attr("value", filename)
-            $("#type").attr("value", type)
-            form.submit()
-
-        } else {
-            window.location = "/"
-        }
-
-    })
-
-    $(".files li.list-group-item").click(function (e) {
-        let file = $(this).find('span').text()
+    $(".files li.list-group-item a").click(function (e) {
+        e.preventDefault()
+        let href = $(this).attr('href')
+        let file = $(this).text()
         let type = $(this).attr("type")
         console.log(file, type)
-
 
         if (type === 'directory') {
 
             let toViewer = false
 
             for (let r of viewerRules) {
-                if (myLocation.endsWith(r)) {
+                if (resFolder.endsWith(r)) {
                     toViewer = true
                 }
             }
 
             if (toViewer) {
-                let destination = myLocation + "/" + file
-                let form = $("#viewerForm")[0]
-
-                $("#viewer_location").attr("value", destination)
-                form.submit()
-            } else {
-
-
-                let form = $("#myForm")[0]
-                $("#location").attr("value", myLocation)
-                $("#filename").attr("value", file)
-                $("#type").attr("value", type)
-
-                form.submit()
+                const url = `${window.location.origin}/viewer${href}`
+                window.open(url,"_blank")
+            }else{
+                window.location.href = href
             }
         } else if (type === 'file') {
 
-            var currentUrl = window.location.href;
-            let path = myLocation.replace(myResourceRoot, "").slice(1) + "/"
-            let url = currentUrl + path + file
-            window.open(url)
-            console.log(url)
+            let origin = window.location.origin
+            let url = `${origin}${href}`
+
+            window.open(url,"_blank")
+
         }
         //    filter images
     })

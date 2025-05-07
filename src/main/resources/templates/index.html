@@ -11,7 +11,11 @@
 
     <script src="tailwindcss/index.global.js"></script>
     <script src="jquery-3.7.1.js"></script>
-
+    <style>
+        .breadcrumb-item+.breadcrumb-item::before {
+            padding-right: 0.2em;
+        }
+    </style>
 </head>
 <body>
 
@@ -41,10 +45,10 @@
         <input type="text" id="viewer_location" name="location">
 
     </form>
-    <nav aria-label="breadcrumb">
+    <nav aria-label="breadcrumb" class="mt-[10px]!">
         <ol class="breadcrumb">
 
-            <li class="breadcrumb-item hidden"><a href="#"></a></li>
+            <li class="breadcrumb-item hidden pl-[0.2em]!"><a  href="#"></a></li>
             <!--<li class="breadcrumb-item active" aria-current="page">Data</li>-->
 
         </ol>
@@ -56,7 +60,7 @@
 
             <th:block th:each="fileInfo : ${directoryData}">
 
-                <li class="list-group-item"
+                <li class="list-group-item  flex! flex-row"
                     th:type="${fileInfo.type}"
                     th:classappend="${fileInfo.type == 'file' ? 'file' : 'directory'}">
 
@@ -65,7 +69,7 @@
                     </th:block>
 
 
-                    <a class="file no-underline!" th:type="${fileInfo.type}"
+                    <a class="file no-underline! flex-1 inline-block" th:type="${fileInfo.type}"
                        th:text="${fileInfo.filename}"></a>
                 </li>
 
@@ -78,65 +82,54 @@
 <script>
 
     // breadcrumb processing
-    // (() => {
-    const breadcrumb = `${myResourceRoot}${resFolder}`
-    console.log("breadcrumb", breadcrumb)
+    (() => {
+        const breadcrumb = `${myResourceRoot}${resFolder}`
+        console.log("breadcrumb", breadcrumb)
 
-    const template = $(".breadcrumb li.breadcrumb-item")
-    $(template).remove()
-    template.removeClass("hidden")
+        const template = $(".breadcrumb li.breadcrumb-item")
+        $(template).remove()
+        template.removeClass("hidden")
 
-    let nextPath = "";
+        let nextPath = "";
 
-    const bd = breadcrumb.split("/")
+        const bd = breadcrumb.split("/")
 
-    for (let [i, b] of bd.entries()) {
-            if(b!==""){
+        for (let [i, b] of bd.entries()) {
+            if (b !== "") {
                 const newOne = template[0].cloneNode(true)
-                $(newOne).find("a").text(b)
+                const newOneA = $(newOne).find("a")
+                $(newOneA).text(b)
                 if (i < rootCountOnBreadcrumb) {
 
-                    $(newOne).find("a").attr("href", "/")
+                    $(newOneA).attr("href", "/")
 
                 } else {
 
-                    let folder = b
-                    folder = encodeURIComponent(folder)
-                    nextPath = nextPath + "/" + folder
-                    $(newOne).find("a").attr("href", `?path=${nextPath}`)
+                    nextPath = nextPath + "/" + b
+                    $(newOneA).attr("href", `?path=${nextPath}`)
 
                 }
+                let rawHref = $(newOneA).attr("href")
+                $(newOneA).attr("href", encodeURI(rawHref))
+
                 $(".breadcrumb").append(newOne)
             }
-    }
-
-
-    // for (let i in $("li.breadcrumb-item a")) {
-    //     if (i < rootCountOnBreadcrumb) {
-    //
-    //         $("li.breadcrumb-item a").eq(i).attr("src", "/")
-    //
-    //     } else {
-    //         let folder = $("li.breadcrumb-item a").eq(i).text()
-    //         folder = encodeURIComponent(folder)
-    //         nextPath = nextPath + "/" + folder
-    //         $("li.breadcrumb-item a").eq(i).attr("href", nextPath)
-    //     }
-    // }
-    // })();
+        }
+    })();
 
     // files processing
     (() => {
         $(".files li.list-group-item a").each(function (e, idx) {
             let type = $(this).attr("type")
             let file = $(this).text()
-            let fileEncoded = encodeURIComponent(file)
-            let resFolderEncoded = encodeURI(resFolder)
             if (type === "directory") {
-                $(this).attr('href', `?path=${resFolderEncoded}/${fileEncoded}`)
+                $(this).attr('href', `?path=${resFolder}/${file}`)
             } else if (type === "file") {
-                $(this).attr('href', `${resFolderEncoded}/${fileEncoded}`)
+                $(this).attr('href', `${resFolder}/${file}`)
             }
+
+            let rawHref = $(this).attr('href')
+            $(this).attr('href', encodeURI(rawHref))
         })
     })();
 
@@ -197,8 +190,8 @@
 
             if (toViewer) {
                 const url = `${window.location.origin}/viewer${href}`
-                window.open(url,"_blank")
-            }else{
+                window.open(url, "_blank")
+            } else {
                 window.location.href = href
             }
         } else if (type === 'file') {
@@ -206,7 +199,7 @@
             let origin = window.location.origin
             let url = `${origin}${href}`
 
-            window.open(url,"_blank")
+            window.open(url, "_blank")
 
         }
         //    filter images

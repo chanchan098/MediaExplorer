@@ -44,21 +44,21 @@ rules
 
     var myResourceRoot = [[${myResourceRoot}]];
     console.log("myResourceRoot", myResourceRoot)
+    const params = new URLSearchParams(window.location.search)
+
+    var resFolder = params.get("path")
+    console.log("resFolder", resFolder)
 
 </script>
 <script>
     var currentUrl = new URL(window.location.href)
     var index = currentUrl.origin
 
-    const params = new URLSearchParams(window.location.search);
-    var resFolder = params.get("path")
-
-    resFolderEncoded = encodeURI(resFolder)
-
     $("#myContainer img").each(function (ele, idx) {
         let file = $(this).attr("filename")
-        let fileEncoded = encodeURIComponent(file)
-        $(this).attr('src', `${index}${resFolderEncoded}/${fileEncoded}`)
+
+        let url = `${index}${resFolder}/${file}`
+        $(this).attr('src', encodeURI(url))
     })
 </script>
 </html>

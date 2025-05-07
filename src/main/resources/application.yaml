@@ -1,0 +1,17 @@
+server:
+  port: 7799
+
+
+myResourceRoot: D:/liaoyj/DevelopmentResources
+#aaa
+viewerRules: apache-jmeter-5.6.3/docs, flutter
+
+spring:
+  web:
+    resources:
+      static-locations: classpath:/static/, classpath:/public/, file:${myResourceRoot}
+  thymeleaf:
+    cache: false
+  devtools:
+    restart:
+      enabled: true

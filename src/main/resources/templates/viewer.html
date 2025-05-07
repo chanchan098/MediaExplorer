@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resource viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
+    <script src="bootstrap/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/bootstrap-icons.min.css">
+
+    <script src="tailwindcss/index.global.js"></script>
+    <script src="jquery-3.7.1.js"></script>
+    <style>
+        body, html {
+            padding: 0;
+            margin: 0;
+        }
+
+        .myContainer {
+            margin: 0 2px;
+        }
+
+        img {
+            width: 100%;
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<!--
+
+rules
+    resourceRoot/resourceParent/resourceParent2/resources
+    /exact/exact/exact/
+-->
+<body>
+<div id="myContainer" class="myContainer">
+    <th:block th:each="fileInfo : ${files}">
+        <img src="" alt="" th:filename="${fileInfo.filename}">
+    </th:block>
+</div>
+</body>
+
+<script th:inline="javascript">
+
+    var myResourceRoot = [[${myResourceRoot}]];
+    console.log("myResourceRoot", myResourceRoot)
+
+    var myLocation = [[${myLocation}]];
+    console.log("myLocation", myLocation)
+
+
+</script>
+<script>
+    var currentUrl = new URL(window.location.href)
+    var index = currentUrl.origin + "/"
+
+    let path = myLocation.replace(myResourceRoot, "").slice(1) + "/"
+    $("#myContainer img").each(function (ele, idx) {
+        $(this).attr('src', index + path + $(this).attr("filename"))
+    })
+    console.log(path)
+</script>
+</html>

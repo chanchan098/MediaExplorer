@@ -18,18 +18,17 @@ public class Viewer {
     private String myResourceRoot;
 
     @RequestMapping("/viewer")
-    public String viewer(@RequestParam(value = "location", required = false) String location, Model model){
-        List<FileInfo> files = new ArrayList<>();
-        if (location != null ) {
-
-            if(!location.startsWith(myResourceRoot)){
-                throw new IllegalArgumentException("Wrong path: "+location);
-            }
-            files = FileUtil.scanDirectory(new File(location));
-
+    public String viewer(@RequestParam(value = "path", required = false) String path, Model model){
+        if(path.contains("../")){
+            throw  new IllegalArgumentException("Error path");
         }
+
+        List<FileInfo> files = new ArrayList<>();
+
+        String location = myResourceRoot+path;
+
+        files = FileUtil.scanDirectory(new File(location));
         model.addAttribute("files", files);
-        model.addAttribute("myLocation", location);
         model.addAttribute("myResourceRoot", myResourceRoot);
         return "viewer";
     }

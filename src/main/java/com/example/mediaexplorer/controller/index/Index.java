@@ -2,6 +2,7 @@ package com.example.mediaexplorer.controller.index;
 
 import com.example.mediaexplorer.bean.FileInfo;
 import com.example.mediaexplorer.util.FileUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,38 +24,27 @@ public class Index {
     private String[] viewerRules;
 
     @RequestMapping("/")
-    public String index(@RequestParam(value = "filename", required = false) String filename,
-                        @RequestParam(value = "location", required = false) String location,
-                        @RequestParam(value = "type", required = false) String type,
+    public String index(@RequestParam(defaultValue = "/") String path,
                         Model model){
-        List<FileInfo> directory = new ArrayList<FileInfo>();
-        String currentPath = location;
 
-        if (location != null && currentPath !=null && type !=null) {
-
-            if(!location.startsWith(myResourceRoot)){
-                throw new IllegalArgumentException("Wrong path: "+location);
-            }
-
-            if (Objects.equals(type, "directory")) {
-                var finalPath = currentPath+"/"+filename;
-                directory = FileUtil.scanDirectory(new File(finalPath));
-                location = location + "/" + filename;
-            }
-//            requestData.forEach((key, value) -> System.out.println(key + ": " + value));
-        } else {
-            location = myResourceRoot;
-            directory = FileUtil.scanDirectory(new File(myResourceRoot));
+        if(path.contains("../")){
+            throw  new IllegalArgumentException("Error path");
         }
+
+        List<FileInfo> directory = new ArrayList<FileInfo>();
+
+//        if(!location.startsWith(myResourceRoot)){
+//            throw new IllegalArgumentException("Wrong path: "+location);
+//        }
+        String location = myResourceRoot+path;
+        directory = FileUtil.scanDirectory(new File(location));
 
 
         viewerRules = Arrays.stream(viewerRules).map(String::strip).toArray(String[]::new);
 
         model.addAttribute("directoryData", directory);
         model.addAttribute("myResourceRoot", myResourceRoot);
-        model.addAttribute("myLocation", location);
         model.addAttribute("viewerRules", viewerRules);
-
 
         return "index";
     }

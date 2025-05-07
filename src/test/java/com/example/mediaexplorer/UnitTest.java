@@ -34,4 +34,12 @@ public class UnitTest {
     }
 
 
+
+    @Test
+    public void subStr(){
+//        String uri = request.getRequestURI();
+        String url = "/apache-zookeeper-3.6.0-bin/docs/images";
+        System.out.println(Arrays.stream(url.split("/")).toList());
+
+    }
 }

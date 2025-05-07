@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>File Explorer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
     <script src="bootstrap/bootstrap.bundle.min.js"></script>
@@ -12,12 +12,88 @@
     <script src="tailwindcss/index.global.js"></script>
     <script src="jquery-3.7.1.js"></script>
     <style>
-        .breadcrumb-item+.breadcrumb-item::before {
+        html, body {
+            height: 100%;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
             padding-right: 0.2em;
+        }
+
+        /* 选择所有奇数元素 */
+        ul li.list-group-item:nth-child(odd) {
+            background-color: #fefefe !important;
+        }
+
+        /* 选择所有偶数元素 */
+        ul li.list-group-item:nth-child(even) {
+            background-color: #f5f5f5 !important;
+        }
+
+        a.file {
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
         }
     </style>
 </head>
-<body>
+
+<body class="bg-[#f5f5f5] relative">
+
+<div class="to-top fixed right-[20px] bottom-[10px] z-999 w-[40px] h-[40px] flex justify-center items-center
+ bg-[#0d6efd] rounded-full" style="display: none">
+
+    <i class="bi bi-arrow-up-short text-[#fff] text-[28px]"></i>
+
+</div>
+
+<div class="container pt-[5px]">
+    <form action="/" method="post" id="myForm" style="display: none">
+        <input type="text" id="location" name="location">
+        <input type="text" id="filename" name="filename">
+        <input type="text" id="type" name="type">
+    </form>
+
+    <form action="/viewer" method="post" id="viewerForm" style="display: none">
+        <input type="text" id="viewer_location" name="location">
+
+    </form>
+    <nav aria-label="breadcrumb" class="mt-[10px]!">
+        <ol class="breadcrumb">
+
+            <li class="breadcrumb-item hidden pl-[0.2em]!"><a href="#"></a></li>
+
+        </ol>
+    </nav>
+
+    <div th:if="${directoryData != null}" class="flex flex-col">
+
+        <ul class="list-group files">
+
+            <th:block th:each="fileInfo : ${directoryData}">
+
+                <li class="list-group-item flex! flex-row"
+                    th:type="${fileInfo.type}"
+                    th:classappend="${fileInfo.type == 'file' ? 'file' : 'directory'}">
+
+                    <th:block th:if="${fileInfo.type == 'directory'}">
+                        <i class="bi bi-folder2-open text-[#ffc107]"></i>
+                    </th:block>
+                    <th:block th:if="${fileInfo.type == 'file'}">
+                        <i class="bi bi-file-earmark text-[#0d6efd]"></i>
+                    </th:block>
+
+
+                    <a class="file no-underline! flex-1 inline-block ml-[5px] text-[#232323]! text-[1.05em]!"
+                       th:type="${fileInfo.type}"
+                       th:text="${fileInfo.filename}"></a>
+                </li>
+
+            </th:block>
+        </ul>
+
+    </div>
+</div>
 
 <script th:inline="javascript">
 
@@ -33,52 +109,6 @@
     let viewerRules = /*[[${viewerRules}]]*/ [];
     console.log("viewerRules", viewerRules)
 </script>
-
-<div class="container">
-    <form action="/" method="post" id="myForm" style="display: none">
-        <input type="text" id="location" name="location">
-        <input type="text" id="filename" name="filename">
-        <input type="text" id="type" name="type">
-    </form>
-
-    <form action="/viewer" method="post" id="viewerForm" style="display: none">
-        <input type="text" id="viewer_location" name="location">
-
-    </form>
-    <nav aria-label="breadcrumb" class="mt-[10px]!">
-        <ol class="breadcrumb">
-
-            <li class="breadcrumb-item hidden pl-[0.2em]!"><a  href="#"></a></li>
-            <!--<li class="breadcrumb-item active" aria-current="page">Data</li>-->
-
-        </ol>
-    </nav>
-
-    <div th:if="${directoryData != null}" class="flex flex-col">
-
-        <ul class="list-group files">
-
-            <th:block th:each="fileInfo : ${directoryData}">
-
-                <li class="list-group-item  flex! flex-row"
-                    th:type="${fileInfo.type}"
-                    th:classappend="${fileInfo.type == 'file' ? 'file' : 'directory'}">
-
-                    <th:block th:if="${fileInfo.type == 'directory'}">
-                        <i class="bi bi-folder"></i>
-                    </th:block>
-
-
-                    <a class="file no-underline! flex-1 inline-block" th:type="${fileInfo.type}"
-                       th:text="${fileInfo.filename}"></a>
-                </li>
-
-            </th:block>
-        </ul>
-
-    </div>
-</div>
-
 <script>
 
     // breadcrumb processing
@@ -133,43 +163,6 @@
         })
     })();
 
-    /*
-    from resource foot
-    ends with comparing
-
-    no / at the end.
-     */
-
-    // $("li.breadcrumb-item a").click(function (e) {
-    //     let directory = $(this).text()
-    //     let type = "directory"
-    //     let index = parseInt($(this).attr("index"))
-    //     if (index + 1 > rootCountOnBreadcrumb) {
-    //         console.log(index, rootCountOnBreadcrumb, directory)
-    //
-    //         let breadcrumb = $("li.breadcrumb-item a")
-    //         let count = 0;
-    //         let fullPathToCur = "";
-    //         while (count <= index) {
-    //             let t = $(breadcrumb[count]).text()
-    //             fullPathToCur += t + "/";
-    //             count++;
-    //         }
-    //         fullPathToCur = fullPathToCur.slice(0, -1)
-    //         let filename = "/"
-    //
-    //
-    //         let form = $("#myForm")[0]
-    //         $("#location").attr("value", fullPathToCur)
-    //         $("#filename").attr("value", filename)
-    //         $("#type").attr("value", type)
-    //         form.submit()
-    //
-    //     } else {
-    //         window.location = "/"
-    //     }
-    //
-    // })
 
     $(".files li.list-group-item a").click(function (e) {
         e.preventDefault()
@@ -183,7 +176,11 @@
             let toViewer = false
 
             for (let r of viewerRules) {
-                if (resFolder.endsWith(r)) {
+
+                let lastSlash = resFolder.lastIndexOf("/")
+                let lastFolder = resFolder.slice(lastSlash + 1)
+
+                if (lastFolder === r) {
                     toViewer = true
                 }
             }
@@ -204,6 +201,75 @@
         }
         //    filter images
     })
+
+
+    $(".to-top").attr("style", "display:none")
+
+
+    const regIconMap = {
+        "\\.(jpg|jpeg|png|gif|bmp|svg|tiff)$": "bi-image",
+        "\\.(zip|tar|gz|rar|7z|bz2|xz)$": "bi-file-earmark-zip-fill",
+        "\\.(sh|java|py)$": "bi-code-slash"
+    }
+    const fileIconMap = {
+        ".css": "bi-filetype-css",
+        ".db":"bi-database",
+        ".doc": "bi-file-word-fill",
+        ".docx": "bi-file-word-fill",
+        ".dll":"bi-file-earmark-binary-fill",
+        ".exe": "bi-filetype-exe",
+        ".html": "bi-filetype-html",
+        ".js": "bi-filetype-js",
+        ".jsx": "bi-filetype-jsx",
+        ".jks": "bi-key-fill",
+        ".json": "bi-filetype-json",
+        ".java": "bi-filetype-java",
+        ".lib":"bi-file-earmark-binary-fill",
+        ".mp4": "bi-filetype-mp4",
+        ".md": "bi-filetype-md",
+        ".pdf": "bi-file-earmark-pdf-fill",
+        ".sql": "bi-filetype-sql",
+        ".ts": "bi-film",
+        ".txt": "bi-file-text",
+        ".xml": "bi-filetype-xml",
+        ".yaml": "bi-filetype-yml",
+        ".yml": "bi-filetype-yml"
+    };
+
+    $(document).ready(function () {
+
+
+        $('li[type="file"]').each(function (e, i) {
+            let text = $(this).find('a').text().toString()
+            let extension = text.slice(text.lastIndexOf('.'));
+
+            let newIcon = fileIconMap[extension]
+            if (newIcon === undefined) {
+                for (let k of Object.keys(regIconMap)) {
+                    if (extension.match(new RegExp(k, "i"))) {
+                        newIcon = regIconMap[k]
+                    }
+                }
+            }
+
+            if (newIcon !== undefined) {
+                $(this).find("i").removeClass("bi-file-earmark").addClass(newIcon)
+            }
+        })
+
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 100) {
+                $('.to-top').fadeIn();
+            } else {
+                $('.to-top').fadeOut();
+            }
+        });
+
+        $('.to-top').click(function () {
+            $('html, body').animate({scrollTop: 0}, 100);
+        });
+    });
+
 </script>
 </body>
 </html>

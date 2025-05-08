@@ -5,8 +5,8 @@ server:
 myResourceRoot: D:/liaoyj/DevelopmentResources
 
 myResourceRoot2: D:/liaoyj/DevelopmentDoc
-#aaa
-viewerRules: apache-jmeter-5.6.3/docs, flutter
+
+imagesNumOfOpenViewer: 5
 
 spring:
   web:

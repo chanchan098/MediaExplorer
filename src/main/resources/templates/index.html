@@ -12,6 +12,12 @@
     <script src="tailwindcss/index.global.js"></script>
     <script src="jquery-3.7.1.js"></script>
     <style>
+        :root {
+            --main-text-color: #232323;
+            --menu-icon-color: #ff9800;
+            --m-skeleton:#e9ecef;
+        }
+
         html, body {
             height: 100%;
         }
@@ -40,33 +46,46 @@
 
 <body class="bg-[#f5f5f5] relative">
 
+
+<!--to top-->
 <div class="to-top fixed right-[20px] bottom-[10px] z-999 w-[40px] h-[40px] flex justify-center items-center
  bg-[#0d6efd] rounded-full" style="display: none">
 
     <i class="bi bi-arrow-up-short text-[#fff] text-[28px]"></i>
+</div>
 
+<!--drawer-->
+<div class="offcanvas offcanvas-end w-1/2!" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title text-[#2196f3]!" id="offcanvasRightLabel">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="drawer-body offcanvas-body p-0!">
+        <div class="m-menu-item flex flex-row items-center border-b border-[#dcdcdc]"
+             style="padding: 8px var(--bs-offcanvas-padding-x)">
+            <i class="text-(--menu-icon-color) bi "></i> <span class="ml-[4px] text-(--main-text-color)">Settings</span>
+        </div>
+    </div>
 </div>
 
 <div class="container pt-[5px]">
-    <form action="/" method="post" id="myForm" style="display: none">
-        <input type="text" id="location" name="location">
-        <input type="text" id="filename" name="filename">
-        <input type="text" id="type" name="type">
-    </form>
 
-    <form action="/viewer" method="post" id="viewerForm" style="display: none">
-        <input type="text" id="viewer_location" name="location">
+    <div class="head flex flex-row items-center">
+        <nav aria-label="breadcrumb" class="mt-[10px]! flex-1">
+            <ol class="breadcrumb">
 
-    </form>
-    <nav aria-label="breadcrumb" class="mt-[10px]!">
-        <ol class="breadcrumb">
+                <li class="breadcrumb-item hidden pl-[0.2em]!"><a href="#"></a></li>
 
-            <li class="breadcrumb-item hidden pl-[0.2em]!"><a href="#"></a></li>
+            </ol>
+        </nav>
+        <div id="openDrawer">
+            <!--            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Toggle</button>-->
+            <i class="bi bi-list text-[1.4em]" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
+               aria-controls="offcanvasRight"></i>
+        </div>
+    </div>
 
-        </ol>
-    </nav>
-
-    <div th:if="${directoryData != null}" class="flex flex-col">
+    <div th:if="${directoryData != null}" class="content flex flex-col ">
 
         <ul class="list-group files">
 
@@ -93,6 +112,12 @@
         </ul>
 
     </div>
+
+    <div class="m-skeleton flex flex-column gap-y-[15px] hidden">
+        <div class="w-2/10 h-[20px] bg-(--m-skeleton) rounded-[5px]"></div>
+        <div class="w-4/10 h-[20px] bg-(--m-skeleton) rounded-[5px]"></div>
+        <div class="w-9/10 h-[20px] bg-(--m-skeleton) rounded-[5px]"></div>
+    </div>
 </div>
 
 <script th:inline="javascript">
@@ -106,10 +131,38 @@
     resFolder = (resFolder == null || false) ? "" : resFolder
     console.log("resFolder", resFolder)
 
-    let viewerRules = /*[[${viewerRules}]]*/ [];
-    console.log("viewerRules", viewerRules)
+
+    var imagesNumOfOpenViewer = /*[[${imagesNumOfOpenViewer}]]*/ 0;
+    console.log("imagesNumOfOpenViewer", imagesNumOfOpenViewer)
 </script>
 <script>
+
+    // check images whether to viewer
+    (() => {
+
+        const imageRegex = /\.(jpg|jpeg|png|gif|bmp|svg|webp|tiff)$/i;
+        let matchedCount = 0
+        let failedCount = 0
+        $('li[type="file"]').each(function (e, i) {
+            let text = $(this).find('a').text().toString()
+            let extension = text.slice(text.lastIndexOf('.'));
+            if (extension.match(imageRegex)) {
+                matchedCount++
+            }else{
+                failedCount++
+            }
+        })
+        console.log("failedCount", failedCount, "matchedCount",matchedCount)
+        if(matchedCount > imagesNumOfOpenViewer){
+            const url = `${window.location.origin}/viewer${window.location.search}`
+            window.location.href = url
+
+        }else{
+            // $(".content").removeClass("hidden").addClass("flex")
+            // $(".m-skeleton").addClass("hidden")
+        }
+
+    })();
 
     // breadcrumb processing
     (() => {
@@ -147,6 +200,36 @@
         }
     })();
 
+    // menu
+    (() => {
+        let menu = [
+            {
+                "title": "Settings",
+                "icon": "bi-gear-fill",
+                "event": "menuSettings(event)"
+            },
+            {
+                "title": "Open viewer",
+                "icon": "bi-images",
+                "event": "menuOpenViewer(event)"
+            }
+        ]
+
+        let body = $(".drawer-body")
+        let item = $(body).find(".m-menu-item")
+        $(item).remove()
+
+        for (let m of menu) {
+            let newItem = item[0].cloneNode(true)
+            $(newItem).find("i").addClass(m.icon)
+            $(newItem).find("span").text(m.title)
+            // $(newItem).on('click',m.event)
+            $(newItem).attr("onclick", m.event)
+            $(body).append(newItem)
+        }
+
+    })();
+
     // files processing
     (() => {
         $(".files li.list-group-item a").each(function (e, idx) {
@@ -163,81 +246,37 @@
         })
     })();
 
-
-    $(".files li.list-group-item a").click(function (e) {
-        e.preventDefault()
-        let href = $(this).attr('href')
-        let file = $(this).text()
-        let type = $(this).attr("type")
-        console.log(file, type)
-
-        if (type === 'directory') {
-
-            let toViewer = false
-
-            for (let r of viewerRules) {
-
-                let lastSlash = resFolder.lastIndexOf("/")
-                let lastFolder = resFolder.slice(lastSlash + 1)
-
-                if (lastFolder === r) {
-                    toViewer = true
-                }
-            }
-
-            if (toViewer) {
-                const url = `${window.location.origin}/viewer${href}`
-                window.open(url, "_blank")
-            } else {
-                window.location.href = href
-            }
-        } else if (type === 'file') {
-
-            let origin = window.location.origin
-            let url = `${origin}${href}`
-
-            window.open(url, "_blank")
-
+    //icons for files
+    (() => {
+        const regIconMap = {
+            "\\.(jpg|jpeg|png|gif|bmp|svg|webp|tiff)$": "bi-image",
+            "\\.(zip|tar|gz|rar|7z|bz2|xz)$": "bi-file-earmark-zip-fill",
+            "\\.(sh|java|py)$": "bi-code-slash"
         }
-        //    filter images
-    })
-
-
-    $(".to-top").attr("style", "display:none")
-
-
-    const regIconMap = {
-        "\\.(jpg|jpeg|png|gif|bmp|svg|tiff)$": "bi-image",
-        "\\.(zip|tar|gz|rar|7z|bz2|xz)$": "bi-file-earmark-zip-fill",
-        "\\.(sh|java|py)$": "bi-code-slash"
-    }
-    const fileIconMap = {
-        ".css": "bi-filetype-css",
-        ".db":"bi-database",
-        ".doc": "bi-file-word-fill",
-        ".docx": "bi-file-word-fill",
-        ".dll":"bi-file-earmark-binary-fill",
-        ".exe": "bi-filetype-exe",
-        ".html": "bi-filetype-html",
-        ".js": "bi-filetype-js",
-        ".jsx": "bi-filetype-jsx",
-        ".jks": "bi-key-fill",
-        ".json": "bi-filetype-json",
-        ".java": "bi-filetype-java",
-        ".lib":"bi-file-earmark-binary-fill",
-        ".mp4": "bi-filetype-mp4",
-        ".md": "bi-filetype-md",
-        ".pdf": "bi-file-earmark-pdf-fill",
-        ".sql": "bi-filetype-sql",
-        ".ts": "bi-film",
-        ".txt": "bi-file-text",
-        ".xml": "bi-filetype-xml",
-        ".yaml": "bi-filetype-yml",
-        ".yml": "bi-filetype-yml"
-    };
-
-    $(document).ready(function () {
-
+        const fileIconMap = {
+            ".css": "bi-filetype-css",
+            ".db": "bi-database",
+            ".doc": "bi-file-word-fill",
+            ".docx": "bi-file-word-fill",
+            ".dll": "bi-file-earmark-binary-fill",
+            ".exe": "bi-filetype-exe",
+            ".html": "bi-filetype-html",
+            ".js": "bi-filetype-js",
+            ".jsx": "bi-filetype-jsx",
+            ".jks": "bi-key-fill",
+            ".json": "bi-filetype-json",
+            ".java": "bi-filetype-java",
+            ".lib": "bi-file-earmark-binary-fill",
+            ".mp4": "bi-filetype-mp4",
+            ".md": "bi-filetype-md",
+            ".pdf": "bi-file-earmark-pdf-fill",
+            ".sql": "bi-filetype-sql",
+            ".ts": "bi-film",
+            ".txt": "bi-file-text",
+            ".xml": "bi-filetype-xml",
+            ".yaml": "bi-filetype-yml",
+            ".yml": "bi-filetype-yml"
+        };
 
         $('li[type="file"]').each(function (e, i) {
             let text = $(this).find('a').text().toString()
@@ -256,7 +295,41 @@
                 $(this).find("i").removeClass("bi-file-earmark").addClass(newIcon)
             }
         })
+    })();
 
+    function menuSettings(e) {
+        console.log("click menuSettings")
+    }
+
+    function menuOpenViewer(e) {
+        console.log("click menuOpenViewer")
+    }
+
+    $(".files li.list-group-item a").click(function (e) {
+        e.preventDefault()
+        let href = $(this).attr('href')
+        let file = $(this).text()
+        let type = $(this).attr("type")
+        console.log(file, type)
+
+        if (type === 'directory') {
+            window.location.href = href
+        } else if (type === 'file') {
+
+            let origin = window.location.origin
+            let url = `${origin}${href}`
+
+            window.open(url, "_blank")
+
+        }
+        //    filter images
+    })
+
+
+    $(".to-top").attr("style", "display:none")
+
+
+    $(document).ready(function () {
         $(window).scroll(function () {
             if ($(this).scrollTop() > 100) {
                 $('.to-top').fadeIn();

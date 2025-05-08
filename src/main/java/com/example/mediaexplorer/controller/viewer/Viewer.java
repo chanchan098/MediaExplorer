@@ -17,6 +17,9 @@ public class Viewer {
     @Value("${myResourceRoot}")
     private String myResourceRoot;
 
+    @Value("${imagesNumOfOpenViewer}")
+    private int imagesNumOfOpenViewer;
+
     @RequestMapping("/viewer")
     public String viewer(@RequestParam(value = "path", required = false) String path, Model model){
         if(path.contains("../")){
@@ -30,6 +33,8 @@ public class Viewer {
         files = FileUtil.scanDirectory(new File(location));
         model.addAttribute("files", files);
         model.addAttribute("myResourceRoot", myResourceRoot);
+        model.addAttribute("imagesNumOfOpenViewer", imagesNumOfOpenViewer);
+
         return "viewer";
     }
 

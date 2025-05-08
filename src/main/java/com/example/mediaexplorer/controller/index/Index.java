@@ -20,8 +20,8 @@ public class Index {
     @Value("${myResourceRoot}")
     private String myResourceRoot;
 
-    @Value("#{'${viewerRules}'.split(',')}")
-    private String[] viewerRules;
+    @Value("${imagesNumOfOpenViewer}")
+    private int imagesNumOfOpenViewer;
 
     @RequestMapping("/")
     public String index(@RequestParam(defaultValue = "/") String path,
@@ -39,12 +39,9 @@ public class Index {
         String location = myResourceRoot+path;
         directory = FileUtil.scanDirectory(new File(location));
 
-
-        viewerRules = Arrays.stream(viewerRules).map(String::strip).toArray(String[]::new);
-
         model.addAttribute("directoryData", directory);
         model.addAttribute("myResourceRoot", myResourceRoot);
-        model.addAttribute("viewerRules", viewerRules);
+        model.addAttribute("imagesNumOfOpenViewer", imagesNumOfOpenViewer);
 
         return "index";
     }
